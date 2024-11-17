@@ -1,70 +1,46 @@
-import React, { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import React, { useState, useCallback } from 'react';
+import Map, { Marker, NavigationControl, GeolocateControl } from 'react-map-gl';
+import type { MapLayerMouseEvent } from 'react-map-gl';
 import { Location } from '../types/Event';
 
-// Reemplaza con tu token de Mapbox
-mapboxgl.accessToken = 'TU_MAPBOX_TOKEN';
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN || '';
 
 interface LocationPickerProps {
     location: Location;
     onLocationChange: (location: Location) => void;
 }
 
+interface MapboxResponse {
+    features: Array<{
+        place_name: string;
+    }>;
+}
+
 const LocationPicker: React.FC<LocationPickerProps> = ({ location, onLocationChange }) => {
-    const mapContainer = useRef<HTMLDivElement>(null);
-    const map = useRef<mapboxgl.Map | null>(null);
-    const marker = useRef<mapboxgl.Marker | null>(null);
+    const [viewport, setViewport] = useState({
+        longitude: location.lng || -99.1332,
+        latitude: location.lat || 19.4326,
+        zoom: 13
+    });
 
-    useEffect(() => {
-        if (!mapContainer.current) return;
-
-        // Inicializar mapa
-        map.current = new mapboxgl.Map({
-            container: mapContainer.current,
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [location.lng || -99.1332, location.lat || 19.4326], // Default: CDMX
-            zoom: 13
-        });
-
-        // Añadir controles de navegación
-        map.current.addControl(new mapboxgl.NavigationControl());
-
-        // Crear marcador
-        marker.current = new mapboxgl.Marker({
-            draggable: true
-        })
-        .setLngLat([location.lng || -99.1332, location.lat || 19.4326])
-        .addTo(map.current);
-
-        // Evento de clic en el mapa
-        map.current.on('click', async (e) => {
-            const { lng, lat } = e.lngLat;
-            marker.current?.setLngLat([lng, lat]);
-            updateLocation(lng, lat);
-        });
-
-        // Evento de arrastre del marcador
-        marker.current.on('dragend', () => {
-            const lngLat = marker.current?.getLngLat();
-            if (lngLat) {
-                updateLocation(lngLat.lng, lngLat.lat);
-            }
-        });
-
-        return () => {
-            map.current?.remove();
-        };
-    }, []);
-
-    const updateLocation = async (lng: number, lat: number) => {
+    const updateLocation = useCallback(async (lng: number, lat: number) => {
         try {
-            // Obtener dirección usando la API de Geocoding de Mapbox
             const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`
             );
-            const data = await response.json();
-            const address = data.features[0]?.place_name || 'Dirección desconocida';
+            
+            if (!response.ok) {
+                throw new Error('Error en la respuesta de Mapbox');
+            }
+
+            const data: MapboxResponse = await response.json();
+            
+            // Validar que data.features existe y tiene elementos
+            if (!data.features || data.features.length === 0) {
+                throw new Error('No se encontró dirección para esta ubicación');
+            }
+
+            const address = data.features[0].place_name || 'Dirección desconocida';
 
             onLocationChange({
                 lng,
@@ -73,14 +49,50 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ location, onLocationCha
             });
         } catch (error) {
             console.error('Error getting address:', error);
+            // En caso de error, actualizar la ubicación solo con las coordenadas
+            onLocationChange({
+                lng,
+                lat,
+                address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+            });
         }
-    };
+    }, [onLocationChange]);
+
+    const handleClick = useCallback((event: MapLayerMouseEvent) => {
+        const { lng, lat } = event.lngLat;
+        updateLocation(lng, lat);
+    }, [updateLocation]);
 
     return (
-        <div>
-            <div ref={mapContainer} style={{ height: '300px', width: '100%' }} />
+        <div style={{ height: '300px', width: '100%', position: 'relative' }}>
+            <Map
+                initialViewState={viewport}
+                onMove={evt => setViewport(evt.viewState)}
+                mapboxAccessToken={MAPBOX_TOKEN}
+                mapStyle="mapbox://styles/mapbox/streets-v11"
+                onClick={handleClick}
+            >
+                <GeolocateControl
+                    positionOptions={{ enableHighAccuracy: true }}
+                    trackUserLocation={true}
+                    onGeolocate={(position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        updateLocation(lng, lat);
+                    }}
+                    style={{ position: 'absolute', top: 10, left: 10 }}
+                />
+                <NavigationControl position="top-left" />
+                {location.lng && location.lat && (
+                    <Marker
+                        longitude={location.lng}
+                        latitude={location.lat}
+                        color="blue"
+                    />
+                )}
+            </Map>
         </div>
     );
 };
 
-export default LocationPicker; 
+export default LocationPicker;

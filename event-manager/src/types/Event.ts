@@ -1,7 +1,7 @@
 export interface Location {
     lat: number;
     lng: number;
-    address: string;  // Dirección legible para humanos
+    address: string;
 }
 export interface Event {
     id: string;

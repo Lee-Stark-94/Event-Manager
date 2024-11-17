@@ -1,63 +1,67 @@
-import React, { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import React from 'react';
+import { 
+    Grid,
+    Card,
+    CardContent,
+    Typography,
+    Container,
+    Box
+} from '@mui/material';
 import { Event } from '../types/Event';
+import { 
+    CalendarToday,
+    LocationOn
+} from '@mui/icons-material';
+import EventMap from './EventMap';
 
 interface EventListProps {
     events: Event[];
 }
 
-const EventMap: React.FC<{ event: Event }> = ({ event }) => {
-    const mapContainer = useRef<HTMLDivElement>(null);
-    const map = useRef<mapboxgl.Map | null>(null);
-
-    useEffect(() => {
-        if (!mapContainer.current) return;
-
-        map.current = new mapboxgl.Map({
-            container: mapContainer.current,
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [event.location.lng, event.location.lat],
-            zoom: 14
-        });
-
-        new mapboxgl.Marker()
-            .setLngLat([event.location.lng, event.location.lat])
-            .addTo(map.current);
-
-        return () => {
-            map.current?.remove();
-        };
-    }, [event]);
-
-    return <div ref={mapContainer} style={{ height: '200px', width: '100%' }} />;
-};
-
 const EventList: React.FC<EventListProps> = ({ events }) => {
     return (
-        <div className="event-list">
-            <h2>Eventos Programados</h2>
+        <Container maxWidth="lg">
+            <Typography variant="h4" component="h2" gutterBottom sx={{ my: 4 }}>
+                Eventos Programados
+            </Typography>
             {events.length === 0 ? (
-                <p>No hay eventos programados</p>
+                <Typography variant="body1" color="text.secondary" align="center">
+                    No hay eventos programados
+                </Typography>
             ) : (
-                <div className="events-grid">
+                <Grid container spacing={3}>
                     {events.map((event) => (
-                        <div key={event.id} className="event-card">
-                            <h3>{event.title}</h3>
-                            <p>{event.description}</p>
-                            <p>
-                                <strong>Fecha:</strong>{' '}
-                                {event.date.toLocaleDateString()}
-                            </p>
-                            <EventMap event={event} />
-                            <p>
-                                <strong>Dirección:</strong> {event.location.address}
-                            </p>
-                        </div>
+                        <Grid item xs={12} sm={6} md={4} key={event.id}>
+                            <Card elevation={3}>
+                                <CardContent>
+                                    <Typography variant="h6" gutterBottom>
+                                        {event.title}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" paragraph>
+                                        {event.description}
+                                    </Typography>
+                                    <Box sx={{ mb: 2 }}>
+                                        <EventMap event={event} />
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                        <CalendarToday sx={{ mr: 1, fontSize: 'small' }} />
+                                        <Typography variant="body2">
+                                            {event.date.toLocaleDateString()}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                                        <LocationOn sx={{ mr: 1, fontSize: 'small', mt: 0.5 }} />
+                                        <Typography variant="body2">
+                                            {event.location.address}
+                                        </Typography>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        </Grid>
                     ))}
-                </div>
+                </Grid>
             )}
-        </div>
+        </Container>
     );
 };
 
