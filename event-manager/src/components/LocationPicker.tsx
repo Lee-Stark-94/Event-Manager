@@ -35,7 +35,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ location, onLocationCha
 
             const data: MapboxResponse = await response.json();
             
-            // Validar que data.features existe y tiene elementos
             if (!data.features || data.features.length === 0) {
                 throw new Error('No se encontró dirección para esta ubicación');
             }
@@ -49,7 +48,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ location, onLocationCha
             });
         } catch (error) {
             console.error('Error getting address:', error);
-            // En caso de error, actualizar la ubicación solo con las coordenadas
             onLocationChange({
                 lng,
                 lat,

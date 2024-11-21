@@ -14,7 +14,6 @@ import { setModalOpen, showNotification } from '../store/slices/uiSlice';
 import LocationPicker from './LocationPicker';
 import { Event, Location } from '../types/Event';
 
-// Interfaz para los valores del formulario
 interface FormValues {
     title: string;
     description: string;
@@ -22,7 +21,6 @@ interface FormValues {
     location: Location;
 }
 
-// Esquema de validación
 const EventSchema = Yup.object().shape({
     title: Yup.string()
         .min(3, 'El título debe tener al menos 3 caracteres')
@@ -41,7 +39,6 @@ const EventSchema = Yup.object().shape({
     })
 });
 
-// Valores iniciales del formulario
 const initialValues: FormValues = {
     title: '',
     description: '',
@@ -61,12 +58,11 @@ const EventForm: React.FC<EventFormProps> = ({ onSubmit }) => {
     const dispatch = useAppDispatch();
     const selectedEvent = useAppSelector(state => state.events.selectedEvent);
 
-    // Convertir selectedEvent a FormValues si existe
     const getInitialValues = (): FormValues => {
         if (selectedEvent) {
             return {
                 ...selectedEvent,
-                date: selectedEvent.date.toISOString().slice(0, 16), // Formato para input datetime-local
+                date: selectedEvent.date.toISOString().slice(0, 16),
             };
         }
         return initialValues;

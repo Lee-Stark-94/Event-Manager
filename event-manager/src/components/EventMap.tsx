@@ -19,21 +19,18 @@ const EventMap: React.FC<EventMapProps> = ({ event }) => {
     useEffect(() => {
         if (!mapContainer.current) return;
 
-        // Inicializar el mapa
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
             style: 'mapbox://styles/mapbox/streets-v11',
             center: [event.location.lng, event.location.lat],
             zoom: 14,
-            interactive: false // Deshabilita la interacción para vista previa
+            interactive: false
         });
 
-        // Añadir marcador
         marker.current = new mapboxgl.Marker({ color: '#1976d2' })
             .setLngLat([event.location.lng, event.location.lat])
             .addTo(map.current);
 
-        // Cleanup
         return () => {
             if (map.current) {
                 map.current.remove();

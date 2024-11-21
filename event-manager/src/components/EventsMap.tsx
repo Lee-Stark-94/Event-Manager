@@ -18,7 +18,6 @@ const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
     useEffect(() => {
         if (!mapContainer.current) return;
 
-        // Inicializar mapa
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
             style: 'mapbox://styles/mapbox/streets-v12',
@@ -26,7 +25,6 @@ const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
             zoom: 11
         });
 
-        // Agregar controles de navegación
         map.current.addControl(new mapboxgl.NavigationControl());
 
         return () => {
@@ -37,20 +35,16 @@ const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
     useEffect(() => {
         if (!map.current || events.length === 0) return;
 
-        // Limpiar marcadores existentes
         const markers = document.getElementsByClassName('mapboxgl-marker');
         while (markers[0]) {
             markers[0].remove();
         }
 
-        // Crear bounds para ajustar el mapa a todos los eventos
         const bounds = new mapboxgl.LngLatBounds();
 
-        // Agregar marcadores para cada evento
         events.forEach((event) => {
             const { lng, lat } = event.location;
 
-            // Crear elemento personalizado para el popup
             const popupContent = document.createElement('div');
             popupContent.innerHTML = `
                 <h3 style="margin: 0 0 8px 0; font-size: 16px;">${event.title}</h3>
@@ -58,18 +52,15 @@ const EventsMap: React.FC<EventsMapProps> = ({ events }) => {
                 <p style="margin: 0; font-size: 14px;">${event.location.address}</p>
             `;
 
-            // Crear y agregar marcador
             new mapboxgl.Marker({ color: '#1976d2' })
                 .setLngLat([lng, lat])
                 .setPopup(new mapboxgl.Popup({ offset: 25 })
                     .setDOMContent(popupContent))
                 .addTo(map.current!);
 
-            // Extender bounds para incluir este punto
             bounds.extend([lng, lat]);
         });
 
-        // Ajustar el mapa para mostrar todos los marcadores
         if (!bounds.isEmpty()) {
             map.current.fitBounds(bounds, {
                 padding: 50,

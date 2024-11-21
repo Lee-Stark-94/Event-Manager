@@ -10,7 +10,6 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
-                // Ignorar las fechas en las acciones y el estado
                 ignoredActions: ['events/addEvent', 'events/updateEvent'],
                 ignoredPaths: ['events.items.date']
             }

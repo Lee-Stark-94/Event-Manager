@@ -9,7 +9,6 @@ interface EventStatsProps {
 
 const EventStats: React.FC<EventStatsProps> = ({ events }) => {
     const { data, layout } = useMemo(() => {
-        // Procesar datos para el gráfico
         const eventsByMonth = events.reduce((acc, event) => {
             const month = event.date.getMonth();
             acc[month] = (acc[month] || 0) + 1;
@@ -36,12 +35,12 @@ const EventStats: React.FC<EventStatsProps> = ({ events }) => {
             },
             yaxis: { 
                 title: 'Número de Eventos',
-                tickformat: 'd' // Formato para números enteros
+                tickformat: 'd'
             },
             paper_bgcolor: 'transparent',
             plot_bgcolor: 'transparent',
             font: { family: 'Roboto' },
-            margin: { t: 50, b: 80 } // Ajuste de márgenes
+            margin: { t: 50, b: 80 }
         };
 
         return { data, layout };
@@ -54,7 +53,7 @@ const EventStats: React.FC<EventStatsProps> = ({ events }) => {
             style={{ width: '100%', height: '400px' }}
             config={{ 
                 responsive: true,
-                displayModeBar: false // Oculta la barra de herramientas
+                displayModeBar: false
             }}
         />
     );
